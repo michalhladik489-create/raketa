@@ -29,7 +29,7 @@ button:focus-visible{outline:3px solid var(--am);outline-offset:3px}
 .card{background:rgba(56,232,255,.07);border:1px solid rgba(56,232,255,.4);border-radius:14px;padding:11px 16px;text-align:left}
 .card:hover{background:rgba(255,79,163,.14);border-color:var(--mg)}
 .card b{display:block;font-size:16px}.card span{color:var(--dim);font-size:13px}
-input{font:inherit;color:var(--ink);background:rgba(56,232,255,.06);border:1px solid rgba(143,152,201,.4);border-radius:10px;padding:7px 10px;width:130px;text-align:center}.lb{white-space:pre-line}
+input{font:inherit;color:var(--ink);background:rgba(56,232,255,.06);border:1px solid rgba(143,152,201,.4);border-radius:10px;padding:7px 10px;width:130px;text-align:center}.lb{white-space:pre-line}select{font:inherit;color:var(--ink);background:#0b1030;border:1px solid rgba(143,152,201,.4);border-radius:10px;padding:7px 10px;max-width:70vw}
 #bb{position:absolute;right:10px;bottom:22px;display:none;background:rgba(255,79,163,.2);border:1px solid var(--mg);border-radius:12px;padding:10px 14px;font-weight:700}
 </style>
 </head>
@@ -46,6 +46,9 @@ input{font:inherit;color:var(--ink);background:rgba(56,232,255,.06);border:1px s
 <p>A/D nebo šipky = pohyb · mezerník = střelba · B = bomba<br>Na mobilu táhni prstem. Každý 5. level je boss.</p>
 <div class="row" style="align-items:center"><input id="rc" value="hlavni" maxlength="20" aria-label="Kód místnosti"><span id="who" style="color:var(--dim);font-size:13px"></span></div>
 <button class="btn s" id="login" style="display:none">Přihlásit přes Google</button><p id="net">Načítání…</p><div id="lob" style="display:none;flex-direction:column;gap:8px;align-items:center"><p id="plist"></p><div class="row" id="modes"></div><button class="btn" id="go" style="display:none">Spustit hru</button><p id="wait"></p></div><p class="lb"></p>
+<div class="row" style="align-items:center"><select id="ws" aria-label="Svět"></select><button class="btn s" id="wdel" style="padding:6px 12px;font-size:13px">Smazat</button></div>
+<div class="row"><input id="wn" maxlength="24" placeholder="Název nového světa"><button class="btn s" id="wnew" style="padding:6px 12px;font-size:13px">Vytvořit svět</button></div>
+<p id="wh" style="white-space:pre-line;font-size:12px"></p>
 <p id="best"></p>
 <button class="btn" id="play">Hrát solo</button><button class="btn s cpb" style="display:none"></button>
 </div>
@@ -87,9 +90,9 @@ const UP=[
 {n:'Rychlejší motor',d:'Svižnější pohyb lodi',ok:()=>P.spd<620,f:()=>P.spd+=45},
 {n:'Pronikavé střely',d:'Střela projde dalším nepřítelem',ok:()=>P.pi<2,f:()=>P.pi++},
 {n:'Naváděné rakety',d:'Každé 2 s vyletí samonaváděcí rakety',ok:()=>P.mi<4,f:()=>P.mi++},
-{n:'Bomba',d:'Smaže střely a zraní vše (klávesa B)',ok:()=>P.bo<3,f:()=>P.bo++},
+{n:'Bomba',d:'Smaže střely a zraní nepřátele o 30 % (klávesa B)',ok:()=>P.bo<2,f:()=>P.bo++},
 {n:'Oprava trupu',d:'+1 život',ok:()=>P.lives<5,f:()=>P.lives++},
-{n:'Štít',d:'6 s štítu na začátku levelu',ok:()=>true,f:()=>P.sh=6}];
+{n:'Štít',d:'6 s štítu (od levelu 10 celých 10 s)',ok:()=>true,f:()=>P.sh=lvl>=10?10:6}];
 function poly(c,p){c.beginPath();p.forEach((q,i)=>i?c.lineTo(q[0],q[1]):c.moveTo(q[0],q[1]));c.closePath()}
 function ship(c,x,y,h,pal,t,s){
  const U=HU[h];c.save();c.translate(x,y);c.scale(s,s);
@@ -110,19 +113,19 @@ function hangar(){
 }
 function save(){try{localStorage.setItem('cfg',JSON.stringify(cfg))}catch(e){}}
 function newGame(){const u=HU[cfg.h];P={x:W/2,y:H-70,lives:u.lives,delay:u.delay,shots:1,dmg:1,spd:u.spd*(W>600?1.3:1),sh:0,cd:0,inv:0,pi:0,mi:0,mc:1,bo:0,pal:PAL[cfg.c],ci:cfg.c,h:cfg.h,u:{}};lvl=1;score=0;startLevel()}
-function startLevel(){if(lvl>1&&lvl%5==1&&mode==='solo')saveCP();if(P.dead){P.dead=0;P.lives=1;P.inv=2}
+function startLevel(){if(lvl>1&&lvl%5==1&&mode==='solo')saveCP();if(mode==='solo'){const w=cw();if(w&&lvl>(w.max||1)){w.max=lvl;wSave()}}if(P.dead){P.dead=0;P.lives=1;P.inv=2}
  B=[];EB=[];D=[];E=[];L=[];bs=null;ox=0;oy=0;dir=1;st='play';show(null);
- if(lvl%5==0){const[k,sg]=bossFor(lvl),mh=Math.round((70+lvl*24)*(1+Math.sqrt(Math.max(0,lvl-5))*.45)*dm*(1+sg*.25));bs={type:k,stage:sg,x:W/2,y:-80,hp:mh,mh,t:1.5,n:0,fl:0,ph:0,tt:0,dg:0,dd:0,w:[74,80,70,62,56,56][k]};intro=2.2;total=1;cutscene();return}
- intro=1.6;if(curM!=='b')music('b');const wd=W>600,cols=wd?(lvl>8?14:12):(lvl>8?8:7),rows=Math.min(3+(lvl>>2),wd?5:6),sp=wd?56:50;
- for(let r=0;r<rows;r++)for(let c=0;c<cols;c++)E.push({id:eid++,bx:(W-(cols-1)*sp)/2+c*sp,by:78+r*42,hp:Math.max(1,Math.round((1+Math.floor(lvl*.6)+(r<1?1:0))*dm)),t:lvl>=3&&(c+r)%4==0?'s':lvl>=4&&(c*3+r)%7==0?'d':'n',ph:Math.random()*6,fl:0});
- total=E.length;
+ if(lvl%5==0){const[k,sg]=bossFor(lvl),mh=Math.round((70+lvl*24)*(1+Math.sqrt(Math.max(0,lvl-5))*.45)*dm*1.5*(1+sg*.25));bs={type:k,stage:sg,x:W/2,y:-80,hp:mh,mh,t:1.5,n:0,fl:0,ph:0,tt:0,dg:0,dd:0,w:[74,80,70,62,56,56][k]};intro=2.2;total=1;cutscene();return}
+ intro=1.6;hvT=9+Math.random()*6;if(curM!=='b')music('b');const wd=W>600,cols=wd?(lvl>8?14:12):(lvl>8?8:7),rows=Math.min(3+(lvl>>2),wd?5:6),sp=wd?56:50;
+ for(let r=0;r<rows;r++)for(let c=0;c<cols;c++)E.push({id:eid++,bx:(W-(cols-1)*sp)/2+c*sp,by:78+r*42,hp:Math.max(1,Math.round((1+Math.floor(lvl*.6)+(r<1?1:0))*dm*1.6)),t:lvl>=3&&(c+r)%4==0?'s':lvl>=4&&(c*3+r)%7==0?'d':'n',ph:Math.random()*6,fl:0});
+ total=E.length;E.forEach(e=>e.mh=e.hp);if(cl)E=[];
 }
 function show(id){['menu','up','over','cs'].forEach(k=>$(k).classList.toggle('on',k===id))}
 function boom(x,y,c,n){for(let i=0;i<n;i++){const a=Math.random()*6.28,s=40+Math.random()*200;PT.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,l:.5+Math.random()*.5,c})}}
 function shoot(){const n=P.shots;for(let i=0;i<n;i++){const o=i-(n-1)/2;B.push({x:P.x+o*11,y:P.y-22,vx:o*18,vy:-540,d:P.dmg,p:P.pi,h:new Set()})}}
-function hit(){if(P.sh>0||P.inv>0||P.dead)return;P.lives--;P.inv=1.6;shake=12;boom(P.x,P.y,P.pal.c,30);if(P.lives<=0)over()}
-function over(f){if(mode==='duel'&&tleft>0){respawn=1;return}if(shared&&!f){P.dead=1;P.lives=0;boom(P.x,P.y,'#fff',30);return}cpUI();music('b');$('ot').textContent='Konec hry';st='over';if(score>best){best=score;try{localStorage.setItem('hs',best)}catch(e){}}saveScore();$('res').textContent='Skóre '+score+' · Level '+lvl+' · Rekord '+best;show('over');$('bb').style.display='none';bn=-1}
-function levelDone(){if(shared&&P.dead){st='wait';ready=lvl;waitT=0;return}st='upgrade';score+=100*lvl;picks=lvl%5==0?2:1;showPicks()}
+function hit(n){if(P.sh>0||P.inv>0||P.dead)return;P.lives-=n||1;P.inv=1.6;shake=12;boom(P.x,P.y,P.pal.c,30);if(P.lives<=0)over()}
+function over(f){if(mode==='duel'&&tleft>0){respawn=1;return}if(shared&&!f){P.dead=1;P.lives=0;boom(P.x,P.y,'#fff',30);return}hist('Konec hry');cpUI();music('b');$('ot').textContent='Konec hry';st='over';if(score>best){best=score;try{localStorage.setItem('hs',best)}catch(e){}}saveScore();$('res').textContent='Skóre '+score+' · Level '+lvl+' · Rekord '+best;show('over');$('bb').style.display='none';bn=-1}
+function levelDone(){if(shared&&P.dead){st='wait';ready=lvl;waitT=0;return}st='upgrade';score+=100*lvl;hist(lvl%5==0?'Boss poražen':'');picks=lvl%5==0?2:1;showPicks()}
 function showPicks(){
  const pool=UP.filter(u=>u.ok()).sort(()=>Math.random()-.5).slice(0,3);
  if(!pool.length){picks=0;lvl++;startLevel();return}
@@ -134,21 +137,22 @@ function showPicks(){
 }
 const px=e=>e.dv?e.dv.x:e.bx+ox,py=e=>e.dv?e.dv.y:e.by+oy;
 function kill(e){e.dead=1;score+=10*lvl;boom(px(e),py(e),'#ff4fa3',14);shake=Math.max(shake,3);const r=Math.random();if(r<.04)D.push({x:px(e),y:py(e),k:'S'});else if(r<.065)D.push({x:px(e),y:py(e),k:'B'});else if(r<.075)D.push({x:px(e),y:py(e),k:'+'})}
-function bomb(){if(st!=='play'||!P||P.dead||P.bo<=0)return;P.bo--;shake=24;fx=1;EB=[];L=[];boom(P.x,P.y-40,'#fff',60);E.forEach(e=>{e.hp-=6+lvl;if(cl)dmgs[e.id]=(dmgs[e.id]||0)+6+lvl;e.fl=.1;if(e.hp<=0&&!e.dead)kill(e)});if(bs&&bs.y>=100&&!(bs.dd>0)){const d=bs.mh*.07+15;bs.hp-=d;if(cl)dmgs['b'+lvl]=(dmgs['b'+lvl]||0)+d;bs.fl=.1}}
+function bomb(){if(st!=='play'||!P||P.dead||P.bo<=0)return;P.bo--;shake=24;fx=1;EB=[];L=[];boom(P.x,P.y-40,'#fff',60);E.forEach(e=>{const d=Math.max(1,Math.ceil((e.mh||e.hp)*.3));e.hp-=d;if(cl)dmgs[e.id]=(dmgs[e.id]||0)+d;e.fl=.1;if(e.hp<=0&&!e.dead)kill(e)});if(bs&&bs.y>=100&&!(bs.dd>0)){const d=bs.mh*.03;bs.hp-=d;if(cl)dmgs['b'+lvl]=(dmgs['b'+lvl]||0)+d;bs.fl=.1}}
 function bossAtk(){
- const p=bs.ph+(bs.stage>0?1:0),n=bs.n++,sp=lvl>15?1.15:1,k=bs.type,Q=(x,y,vx,vy,r,c,h)=>EB.push({x,y,vx,vy,r,c,h});
+ const p=bs.ph+(bs.stage>0?1:0),n=bs.n++,sp=lvl>15?1.15:1,k=bs.type,Q=(x,y,vx,vy,r,c,h,dm)=>EB.push({x,y,vx,vy,r,c,h,dm});
  const A={
-  ring:()=>{const m=12+p*6,s=150+lvl*2;for(let i=0;i<m;i++){const a=i/m*6.283+n*.3;Q(bs.x,bs.y+20,Math.cos(a)*s*sp,Math.sin(a)*s*sp,5,'#ff4fa3')}},
-  aim:()=>{const m=3+p*2,a0=Math.atan2(P.y-bs.y,P.x-bs.x);for(let i=0;i<m;i++){const a=a0+(i-(m-1)/2)*.2;Q(bs.x,bs.y+20,Math.cos(a)*280*sp,Math.sin(a)*280*sp,4,'#ffc247')}},
-  wall:()=>{const gap=70+Math.random()*(W-140);for(let x=14;x<W;x+=32)if(Math.abs(x-gap)>Math.max(44,56-p*5))Q(x,bs.y+30,0,165+lvl*2,5,'#a67bff')},
+  ring:()=>{const m=10+p*4,s=150+lvl*2;for(let i=0;i<m;i++){const a=i/m*6.283+n*.3;Q(bs.x,bs.y+20,Math.cos(a)*s*sp,Math.sin(a)*s*sp,5,'#ff4fa3')}},
+  aim:()=>{const m=3+p,a0=Math.atan2(P.y-bs.y,P.x-bs.x);for(let i=0;i<m;i++){const a=a0+(i-(m-1)/2)*.2;Q(bs.x,bs.y+20,Math.cos(a)*280*sp,Math.sin(a)*280*sp,4,'#ffc247')}},
+  wall:()=>{const gap=70+Math.random()*(W-140);for(let x=14;x<W;x+=38)if(Math.abs(x-gap)>Math.max(44,56-p*5))Q(x,bs.y+30,0,165+lvl*2,5,'#a67bff')},
   laser:()=>{L.push({x:P.x,t:0});if(p>1){L.push({x:Math.max(30,P.x-120),t:.2});L.push({x:Math.min(W-30,P.x+120),t:.2})}},
   orb:()=>[-1,1].forEach(s=>Q(bs.x+s*40,bs.y+20,s*40,90,9,'#ffc247',4.5)),
-  spiral:()=>{for(let i=0;i<5+p*2;i++){const a=n*.7+i*.35,v=140+i*14;Q(bs.x,bs.y+20,Math.cos(a)*v,Math.sin(a)*v,4,'#5dffb0')}},
-  rain:()=>{for(let i=0;i<8+p*4;i++)Q(Math.random()*W,-10,0,200+Math.random()*120,4,'#38e8ff')},
+  spiral:()=>{for(let i=0;i<4+p*2;i++){const a=n*.7+i*.35,v=140+i*14;Q(bs.x,bs.y+20,Math.cos(a)*v,Math.sin(a)*v,4,'#5dffb0')}},
+  rain:()=>{for(let i=0;i<5+p*3;i++)Q(Math.random()*W,-10,0,200+Math.random()*120,4,'#38e8ff')},
+  heavy:()=>{const a0=Math.atan2(P.y-bs.y,P.x-bs.x);[-.18,.18].forEach(d=>Q(bs.x,bs.y+20,Math.cos(a0+d)*190,Math.sin(a0+d)*190,13,'#ff2a2a',undefined,2))},
   sum:()=>{if(cl)return;for(let i=0;i<3+p;i++)E.push({id:eid++,bx:0,by:0,hp:Math.max(1,Math.round((2+Math.floor(lvl/4))*dm)),t:'d',ph:0,sm:1,fl:0,dv:{x:bs.x+(i-1)*30,y:bs.y+20,vy:200+lvl*4,vx:(P.x-bs.x)*.35+(i-1)*70}})}
  };
- const LS=[['aim','ring','wall'],['ring','sum','aim'],['laser','aim','orb'],['sum','spiral','sum','orb'],['wall','rain','aim'],['spiral','ring','rain']][k];
- A[LS[n%LS.length]]();bs.t=Math.max(.45,1.5-p*.4);
+ const LS=[['aim','laser','ring','wall'],['ring','sum','laser','aim'],['laser','aim','orb','laser'],['sum','laser','spiral','orb'],['wall','laser','rain','aim'],['spiral','laser','ring','rain']][k];
+ A[n%5==4?'heavy':LS[n%LS.length]]();bs.t=Math.max(.45,1.5-p*.4);
 }
 function update(dt){if(respawn){respawn=0;P.lives=3;P.inv=2;score=Math.round(score*.8);startLevel();return}if(mode==='duel'){tleft-=dt;if(tleft<=0){endDuel();return}}
  const mv=(keys.ArrowRight||keys.KeyD?1:0)-(keys.ArrowLeft||keys.KeyA?1:0);
@@ -170,7 +174,8 @@ function update(dt){if(respawn){respawn=0;P.lives=3;P.inv=2;score=Math.round(sco
    if(mx>W-26&&dir>0||mn<26&&dir<0){dir*=-1;oy+=22}}
   const free=E.filter(e=>(cl||!e.dv)&&!e.sm);
   if(!cl&&lvl>=4&&Math.random()<dt*(.12+lvl*.03)){const d=free.filter(e=>e.t=='d');if(d.length){const e=d[Math.random()*d.length|0],x=px(e),y=py(e),vy=230+lvl*7;e.dv={x,y,vy,vx:(P.x-x)*vy/Math.max(80,P.y-y)}}}
-  if(!P.dead&&free.length&&EB.length<220&&Math.random()<dt*Math.min(9,.8+lvl*.2)*(W>600?1.5:1)*dm){const e=free[Math.random()*free.length|0],s=Math.min(520,200+lvl*6),x=px(e),y=py(e)+14;
+  hvT-=dt;if(!P.dead&&free.length&&hvT<=0){hvT=11+Math.random()*9;const e=free[Math.random()*free.length|0],x=px(e),y=py(e)+14,a=Math.atan2(P.y-y,P.x-x);EB.push({x,y,vx:Math.cos(a)*170,vy:Math.sin(a)*170,r:12,c:'#ff2a2a',dm:2})}
+   if(!P.dead&&free.length&&EB.length<220&&Math.random()<dt*Math.min(5,.5+lvl*.12)*(W>600?1.5:1)*dm){const e=free[Math.random()*free.length|0],s=Math.min(520,200+lvl*6),x=px(e),y=py(e)+14;
    if(e.t=='s'){const a=Math.atan2(P.y-y,P.x-x);EB.push({x,y,vx:Math.cos(a)*s*1.1,vy:Math.sin(a)*s*1.1,r:4,c:'#ffc247'})}else EB.push({x,y,vx:0,vy:s,r:4,c:'#ff9bd0'})}
   if(bs&&!cl){bs.tt+=dt;if(bs.y<110)bs.y+=70*dt;else{bs.x=W/2+Math.sin(bs.tt*(.7+bs.ph*.35))*(W/2-95);bs.t-=dt;if(bs.t<=0)bossAtk()}}
  }
@@ -181,7 +186,7 @@ function update(dt){if(respawn){respawn=0;P.lives=3;P.inv=2;score=Math.round(sco
   else if(e.dv.y>H+30){if(e.sm||cl)e.dead=1;else e.dv=null}}});
  // homing + pohyb střel
  EB.forEach(b=>{if(b.h>0){b.h-=dt;const sp=Math.hypot(b.vx,b.vy)||1,ca=Math.atan2(b.vy,b.vx);let d=Math.atan2(P.y-b.y,P.x-b.x)-ca;d=Math.atan2(Math.sin(d),Math.cos(d));const na=ca+Math.max(-1,Math.min(1,d))*dt*1.8;b.vx=Math.cos(na)*sp;b.vy=Math.sin(na)*sp}b.x+=b.vx*dt;b.y+=b.vy*dt});
- EB=EB.filter(b=>{if(!P.dead&&Math.hypot(b.x-P.x,b.y-P.y)<b.r+10){if(P.sh<=0&&P.inv<=0)hit();else{boom(b.x,b.y,P.pal.c,6);if(P.sh>0)P.sh=Math.max(.01,P.sh-.8)}return false}return b.y<H+30&&b.y>-40&&b.x>-30&&b.x<W+30});
+ EB=EB.filter(b=>{if(!P.dead&&Math.hypot(b.x-P.x,b.y-P.y)<b.r+10){if(P.sh<=0&&P.inv<=0)hit(b.dm);else{boom(b.x,b.y,P.pal.c,6);if(P.sh>0)P.sh=Math.max(.01,P.sh-(b.dm?2.5:.8))}return false}return b.y<H+30&&b.y>-40&&b.x>-30&&b.x<W+30});
  L.forEach(l=>{l.t+=dt;if(l.t>1&&l.t<1.7&&Math.abs(P.x-l.x)<16)hit()});L=L.filter(l=>l.t<1.7);
  // zásahy hráče
  B.forEach(b=>{
@@ -192,7 +197,7 @@ function update(dt){if(respawn){respawn=0;P.lives=3;P.inv=2;score=Math.round(sco
  if(!cl&&bs&&bs.hp<=0){boom(bs.x,bs.y,BC[bs.type],90);boom(bs.x,bs.y,'#fff',40);shake=26;fx=.6;score+=500*(lvl/5);EB=[];L=[];bs=null;if(lvl>=100)victory()}
  if(E.some(e=>!e.dv&&e.by+oy>P.y-28)){P.lives=0;boom(P.x,P.y,'#ff4fa3',40);over(shared);return}
  D.forEach(d=>d.y+=110*dt);
- D=D.filter(d=>{if(Math.abs(d.x-P.x)<24&&Math.abs(d.y-P.y)<24){if(d.k=='S')P.sh=Math.max(P.sh,4);else if(d.k=='B')P.bo=Math.min(3,P.bo+1);else P.lives=Math.min(5,P.lives+1);score+=25;return false}return d.y<H+20});
+ D=D.filter(d=>{if(Math.abs(d.x-P.x)<24&&Math.abs(d.y-P.y)<24){if(d.k=='S')P.sh=Math.max(P.sh,lvl>=10?6:4);else if(d.k=='B')P.bo=Math.min(2,P.bo+1);else P.lives=Math.min(5,P.lives+1);score+=25;return false}return d.y<H+20});
  if(!cl&&!E.length&&!bs&&st==='play'&&intro<=0)levelDone();
 }
 function boss(c,b,t,sc){
@@ -225,7 +230,7 @@ function draw(t){
   g.fill();g.shadowBlur=0;g.fillStyle='#070a1c';g.fillRect(-6,-5,4,5);g.fillRect(2,-5,4,5);if(e.t=='s')g.fillRect(-2,4,4,8);g.restore()});
  g.shadowBlur=12;g.shadowColor=P?P.pal.c:'#38e8ff';
  B.forEach(b=>{if(b.m){g.shadowColor='#ff9a3d';g.fillStyle='#ffd0a0';g.beginPath();g.arc(b.x,b.y,4,0,6.3);g.fill()}else{g.fillStyle='#fff';g.fillRect(b.x-2,b.y-9,4,14)}});
- EB.forEach(b=>{g.shadowColor=b.c;g.fillStyle=b.c;g.beginPath();g.arc(b.x,b.y,b.r,0,6.3);g.fill();g.fillStyle='#fff';g.beginPath();g.arc(b.x,b.y,b.r*.4,0,6.3);g.fill()});
+ EB.forEach(b=>{if(b.dm){g.shadowColor='#ff2a2a';g.strokeStyle='#ff2a2a';g.lineWidth=3;g.beginPath();g.arc(b.x,b.y,b.r+5+Math.sin(t/70)*3,0,6.3);g.stroke()}g.shadowColor=b.c;g.fillStyle=b.c;g.beginPath();g.arc(b.x,b.y,b.r,0,6.3);g.fill();g.fillStyle='#fff';g.beginPath();g.arc(b.x,b.y,b.r*.4,0,6.3);g.fill()});
  g.shadowBlur=0;
  if(P&&st!=='over'&&!P.dead&&(P.inv<=0||Math.floor(t/90)%2)){ship(g,P.x,P.y,P.h,P.pal,t,1);if(P.sh>0){g.strokeStyle='rgba(56,232,255,'+(P.sh<2?.4+.3*Math.sin(t/60):.8)+')';g.lineWidth=2.5;g.beginPath();g.arc(P.x,P.y,34,0,6.3);g.stroke()}}
  peersNow.forEach(p=>{if(p.isMe||p.kind!=='viewer')return;const q=p.presence||{};if(!q.a)return;const hh=HU[q.h|0]?q.h|0:0,qx=+q.x||0,qy=+q.y||0;g.globalAlpha=.5;ship(g,qx,qy,hh,PAL[q.c|0]||PAL[0],t,1);g.globalAlpha=1;g.fillStyle='#e8ecff';g.font='700 11px Chakra Petch,sans-serif';g.textAlign='center';g.fillText(String(names[p.by]||'Hráč').slice(0,14),qx,qy+42)});
@@ -234,8 +239,8 @@ function draw(t){
   g.textAlign='right';for(let i=0;i<P.lives;i++){g.save();g.translate(W-24-i*22,22);g.fillStyle=P.pal.c;poly(g,[[0,-9],[8,8],[0,4],[-8,8]]);g.fill();g.restore()}
   {const lst=peersNow.filter(p=>p.kind==='viewer').map(p=>{const q=p.presence||{};return{n:p.isMe?'Ty':String(names[p.by]||'Hráč').slice(0,14),s:+q.s||0,l:+q.l||0}}).sort((a,b)=>b.s-a.s).slice(0,6);if(lst.length>1){g.textAlign='right';g.font='600 12px Chakra Petch,sans-serif';lst.forEach((r,i)=>{g.fillStyle=r.n==='Ty'?'#38e8ff':'#8f98c9';g.fillText(r.n+' · L'+r.l+' · '+r.s,W-14,96+i*16)})}}
   if(bs){g.fillStyle='rgba(255,255,255,.12)';g.fillRect(40,44,W-80,8);g.fillStyle=BC[bs.type];g.fillRect(40,44,(W-80)*Math.max(0,bs.hp/bs.mh),8);g.fillStyle='#e8ecff';g.font='700 12px Chakra Petch,sans-serif';g.textAlign='center';g.fillText(BN[bs.type],W/2,66)}
-  if(P.sh>0){g.fillStyle='rgba(56,232,255,.25)';g.fillRect(14,H-12,W-28,4);g.fillStyle='#38e8ff';g.fillRect(14,H-12,(W-28)*Math.min(1,P.sh/6),4)}
-  if(bs&&bs.dd>0){g.textAlign='center';g.fillStyle='#ffc247';g.font='700 26px Chakra Petch,sans-serif';g.fillText('PŘEŽIJ! '+Math.ceil(bs.dd)+' s',W/2,H/2-60)}if((P&&P.dead&&st==='play')||st==='wait'){g.textAlign='center';g.fillStyle='#ffc247';g.font='700 22px Chakra Petch,sans-serif';g.fillText(st==='wait'?'Čeká se na spoluhráče…':'Padl jsi – oživíš se v dalším levelu',W/2,H/2)}if(mode==='duel'&&st==='play'){g.textAlign='left';g.fillStyle='#ffc247';g.font='700 20px Chakra Petch,sans-serif';g.fillText('⏱ '+Math.ceil(tleft)+' s',14,52)}
+  if(P.sh>0){g.fillStyle='rgba(56,232,255,.25)';g.fillRect(14,H-12,W-28,4);g.fillStyle='#38e8ff';g.fillRect(14,H-12,(W-28)*Math.min(1,P.sh/(lvl>=10?10:6)),4)}
+  if(bs&&bs.dd>0){g.textAlign='center';g.fillStyle='#ffc247';g.font='700 26px Chakra Petch,sans-serif';g.fillText('PŘEŽIJ! '+Math.ceil(bs.dd)+' s',W/2,H/2-60)}if((P&&P.dead&&st==='play')||st==='wait'){g.textAlign='center';g.fillStyle='#ffc247';g.font='700 22px Chakra Petch,sans-serif';g.fillText(st==='wait'?'Čeká se na spoluhráče…':'Padl jsi – oživíš se v dalším levelu',W/2,H/2)}if(shared){g.textAlign='left';g.fillStyle='#8f98c9';g.font='600 11px Chakra Petch,sans-serif';g.fillText('TEAM · '+(host?'hostitel':'klient')+' · hráčů '+teamN+' · '+syncMsg,14,H-22)}if(mode==='duel'&&st==='play'){g.textAlign='left';g.fillStyle='#ffc247';g.font='700 20px Chakra Petch,sans-serif';g.fillText('⏱ '+Math.ceil(tleft)+' s',14,52)}
   if(intro>0&&st==='play'){g.textAlign='center';g.globalAlpha=Math.min(1,intro);g.fillStyle=bs?'#ff4fa3':'#ffc247';g.font='700 34px Chakra Petch,sans-serif';g.fillText(bs?'Boss: '+BN[bs.type]:'Level '+lvl,W/2,H/2)}g.globalAlpha=1;
   if(P.bo!==bn){bn=P.bo;$('bb').style.display=bn>0?'block':'none';$('bb').textContent='Bomba ×'+bn+' (B)'}}
  if(fx>0){g.fillStyle='rgba(255,255,255,'+fx*.6+')';g.fillRect(0,0,W,H)}
@@ -264,10 +269,10 @@ cv.addEventListener('pointermove',e=>{if(touch!==null)tx(e)});
 ['pointerup','pointercancel','pointerleave'].forEach(n=>cv.addEventListener(n,()=>touch=null));
 $('play').onclick=solo;$('again').onclick=()=>{if(mode==='solo')solo();else{st='menu';hangar();show('menu')}};$('bb').onclick=bomb;$('cs').onclick=cutNext;$('resume').onclick=togglePause;$('leave').onclick=leaveGame;document.querySelectorAll('.cpb').forEach(b=>b.onclick=cont);
 $('hang').onclick=()=>{st='menu';hangar();show('menu')};
-let rm=null,names={},peersNow=[],lastSend=0,mode='solo',dm=.75,cut=null,respawn=0,tleft=0,teamN=1,deadLvl=0,specT=0,shared=false,host=false,cl=false,eid=0,waitT=0,ready=0,runId=0,lastSnap=0,lastSnapT=0,lastDm=0,snapIn=null,dmgs={},lastDmgJ='',paused=false,curM=null,muted=false;
+let rm=null,names={},peersNow=[],lastSend=0,mode='solo',dm=.75,cut=null,respawn=0,tleft=0,teamN=1,deadLvl=0,specT=0,shared=false,host=false,cl=false,eid=0,waitT=0,ready=0,runId=0,lastSnap=0,lastSnapT=0,lastDm=0,snapIn=null,dmgs={},lastDmgJ='',paused=false,curM=null,muted=false,syncMsg='',hvT=0;
 const csc=$('csc').getContext('2d');
-const MU={b:new Audio('music/basicmusic.mp3'),s:new Audio('music/bossmusic.mp3')};MU.b.loop=MU.s.loop=true;MU.b.volume=.35;MU.s.volume=.5;
-function music(w){curM=w;for(const k in MU){const a=MU[k];if(k===w&&!muted){if(k==='s'&&a.paused)a.currentTime=0;a.play().catch(()=>{})}else a.pause()}}
+const MU={b:new Audio('music/basicmusic.mp3'),s:new Audio('music/bossmusic.mp3'),t:new Audio('music/sidebossmusic.mp3')};MU.b.loop=MU.s.loop=MU.t.loop=true;MU.b.volume=.35;MU.s.volume=.5;MU.t.volume=.5;
+function music(w){curM=w;for(const k in MU){const a=MU[k];if(k===w&&!muted){if(k!=='b'&&a.paused)a.currentTime=0;a.play().catch(()=>{})}else a.pause()}}
 function toggleMute(){muted=!muted;music(curM)}
 function togglePause(){if(!paused&&!['play','upgrade','cut','wait'].includes(st))return;paused=!paused;$('ps').classList.toggle('on',paused)}
 function leaveGame(){paused=false;$('ps').classList.remove('on');cut=null;shared=false;cl=false;st='menu';$('bb').style.display='none';bn=-1;music(null);if(rm)rm.presence({a:0,s:0,l:1}).catch(()=>{});hangar();show('menu')}
@@ -277,14 +282,14 @@ function mkSnap(){return{r:runId,lv:lvl,ph:st==='over'?'over':st==='cut'?'cut':(
  b:bs?{k:bs.type,sg:bs.stage,w:bs.w,x:Math.round(bs.x),y:Math.round(bs.y),hp:Math.round(bs.hp),mh:bs.mh,ph:bs.ph,dd:+Math.max(0,bs.dd).toFixed(1),n:bs.n}:null}}
 function applyDmg(id,d){if(String(id)[0]==='b'){if(bs&&bs.y>=100&&!(bs.dd>0)){bs.hp-=d;bs.fl=.06}}else{const e=E.find(x=>String(x.id)===String(id));if(e&&!e.dead){e.hp-=d;e.fl=.08;if(e.hp<=0)kill(e)}}}
 function applySnap(sn){
- if(!cl||sn.r!==runId||st==='over'||st==='menu')return;lastSnapT=performance.now();
+ if(!cl||sn.r!==runId||st==='over'||st==='menu')return;lastSnapT=performance.now();syncMsg='sync OK';
  if(sn.ph==='over'){over(true);return}
  if(sn.lv<lvl)return;
  if(sn.lv>lvl&&(st==='play'||st==='wait'||st==='upgrade'||st==='cut')){lvl=sn.lv;cut=null;dmgs={};startLevel()}
  if(sn.ph==='play'&&st==='cut'){cut=null;show(null);st='play';intro=0}
  if(sn.ph==='up'&&st==='play')levelDone();
  const old=new Map(E.map(e=>[e.id,e]));
- E=sn.E.map(r=>{const o=old.get(r[0]);return{id:r[0],t:'nsd'[r[3]],hp:r[4],sm:r[5],fl:o?o.fl:0,ph:0,tx:r[1],ty:r[2],dv:o&&o.dv?o.dv:{x:r[1],y:r[2]}}});
+ E=sn.E.map(r=>{const o=old.get(r[0]);return{id:r[0],t:'nsd'[r[3]],hp:r[4],sm:r[5],fl:o?o.fl:0,ph:0,mh:o?o.mh:r[4],tx:r[1],ty:r[2],dv:o&&o.dv?o.dv:{x:r[1],y:r[2]}}});
  const b=sn.b;
  if(b){if(!bs)bs={type:b.k,stage:b.sg,x:b.x,y:b.y,hp:b.hp,mh:b.mh,t:9,n:b.n,fl:0,ph:0,tt:0,dg:1,dd:0,w:b.w};
   Object.assign(bs,{tx:b.x,ty:b.y,hp:b.hp,mh:b.mh,ph:b.ph,dd:b.dd});
@@ -293,20 +298,32 @@ function applySnap(sn){
 }
 function bossFor(l){return l==5?[0,0]:l==50?[0,1]:l==100?[0,2]:[1+(l/5)%5,0]}
 function solo(){mode='solo';dm=.75;shared=false;cl=false;newGame()}
-function startMatch(m,run){mode=m;runId=run||0;teamN=Math.max(1,peersNow.filter(p=>p.kind==='viewer').length);dm=m==='team'?Math.max(.9,1+.25*(teamN-2)):1;tleft=100;cut=null;shared=m==='team'&&teamN>1;cl=shared&&!host;ready=0;dmgs={};lastDmgJ='';snapIn=null;lastSnapT=performance.now();paused=false;$('ps').classList.remove('on');newGame()}
+function startMatch(m,run){mode=m;runId=run||0;teamN=Math.max(1,peersNow.filter(p=>p.kind==='viewer').length);dm=m==='team'?Math.max(.9,1+.25*(teamN-2)):1;tleft=100;cut=null;shared=m==='team'&&teamN>1;cl=shared&&!host;syncMsg=cl?'čekám na hostitele…':'sync…';ready=0;dmgs={};lastDmgJ='';snapIn=null;lastSnapT=performance.now();paused=false;$('ps').classList.remove('on');newGame()}
 function endDuel(){st='over';$('ot').textContent='Konec zápasu 1V1';$('res').textContent='Čekám na výsledky…';show('over');$('bb').style.display='none';bn=-1;
  setTimeout(()=>{const r=peersNow.filter(p=>p.kind==='viewer').map(p=>({n:p.isMe?'Ty':String(names[p.by]||'Hráč').slice(0,14),s:p.isMe?score:+(p.presence||{}).s||0})).sort((a,b)=>b.s-a.s);
  $('res').textContent=(r.length>1?(r[0].n==='Ty'?'Vyhrál jsi!':'Vyhrál '+r[0].n):'Dohráno')+'\n'+r.map((x,i)=>(i+1)+'. '+x.n+' – '+x.s).join('\n')},1500);saveScore()}
-function cutscene(){const d=BS[bs.type];if(bs.type==0)music('s');cut={l:d.s[Math.min(bs.stage,d.s.length-1)],i:0,c:0};st='cut';$('csn').textContent='* '+d.n;show('cs')}
+function cutscene(){const d=BS[bs.type];music(bs.type==0?'s':'t');cut={l:d.s[Math.min(bs.stage,d.s.length-1)],i:0,c:0};st='cut';$('csn').textContent='* '+d.n;show('cs')}
 function cutNext(){if(!cut)return;const q=cut.l[cut.i];if(cut.c<q.length)cut.c=q.length;else if(++cut.i>=cut.l.length){cut=null;show(null);st='play';intro=2}else cut.c=0}
-const cpGet=()=>{try{return JSON.parse(localStorage.getItem('cp'))}catch(e){return null}};
-function saveCP(){try{localStorage.setItem('cp',JSON.stringify({lvl,score,P:{...P,pal:null}}))}catch(e){}}
+let worlds=[],wid=0;
+function wLoad(){try{worlds=JSON.parse(localStorage.getItem('worlds')||'[]')}catch(e){worlds=[]}
+ if(!worlds.length){let cp=null;try{cp=JSON.parse(localStorage.getItem('cp'))}catch(e){}worlds=[{id:1,name:'Svět 1',max:cp?cp.lvl:1,hist:[],cp}]}
+ wid=+localStorage.getItem('wid')||worlds[0].id;if(!worlds.some(w=>w.id===wid))wid=worlds[0].id}
+const cw=()=>worlds.find(w=>w.id===wid);
+function wSave(){try{localStorage.setItem('worlds',JSON.stringify(worlds));localStorage.setItem('wid',wid)}catch(e){}}
+const cpGet=()=>{const w=cw();return w&&w.cp};
+function saveCP(){const w=cw();if(!w)return;w.cp={lvl,score,P:{...P,pal:null}};wSave()}
+function hist(txt){const w=cw();if(!w||mode!=='solo')return;w.max=Math.max(w.max||1,lvl);w.hist.unshift({lvl,score,txt,t:Date.now()});w.hist.length=Math.min(w.hist.length,40);wSave();wUI()}
+function wUI(){const sel=$('ws');sel.innerHTML='';worlds.forEach(w=>{const o=document.createElement('option');o.value=w.id;o.textContent=w.name+' (max level '+(w.max||1)+')';sel.appendChild(o)});sel.value=wid;
+ const w=cw();$('wh').textContent=w&&w.hist.length?'Historie:\n'+w.hist.slice(0,6).map(h=>'Level '+h.lvl+' · skóre '+h.score+' · '+new Date(h.t).toLocaleString('cs-CZ',{day:'numeric',month:'numeric',hour:'2-digit',minute:'2-digit'})+(h.txt?' · '+h.txt:'')).join('\n'):'Zatím žádná historie – začni hrát.';cpUI()}
 function cpUI(){const o=cpGet();document.querySelectorAll('.cpb').forEach(b=>{b.style.display=o?'inline-block':'none';if(o)b.textContent='Pokračovat od checkpointu (level '+o.lvl+')'})}
 function cont(){const o=cpGet();if(!o)return;mode='solo';dm=.75;shared=false;cl=false;P={...o.P,pal:PAL[o.P.ci]||PAL[0],x:W/2,y:H-70,lives:Math.max(2,o.P.lives),inv:2,sh:0,cd:0};lvl=o.lvl;score=o.score;startLevel()}
-function victory(){try{localStorage.removeItem('cp')}catch(e){}if(score>best){best=score;try{localStorage.setItem('hs',best)}catch(e){}}st='over';$('ot').textContent='Pásler poražen – vítězství!';$('res').textContent='Dokončil jsi všech 100 levelů! Skóre '+score;show('over');saveScore();cpUI()}
+function victory(){{const w=cw();if(w){w.cp=null;wSave()}}hist('Pásler poražen!');if(score>best){best=score;try{localStorage.setItem('hs',best)}catch(e){}}st='over';$('ot').textContent='Pásler poražen – vítězství!';$('res').textContent='Dokončil jsi všech 100 levelů! Skóre '+score;show('over');saveScore();cpUI()}
 const rcode=()=>($('rc').value||'hlavni').toLowerCase().replace(/[^a-z0-9_.-]/g,'').replace(/^[^a-z0-9]+/,'')||'hlavni';
 window.saveScore=()=>{};
-hangar();requestAnimationFrame(loop);
+$('ws').onchange=()=>{wid=+$('ws').value;wSave();wUI()};
+$('wnew').onclick=()=>{const n=($('wn').value||'').trim().slice(0,24)||'Svět '+(worlds.length+1),id=Date.now();worlds.push({id,name:n,max:1,hist:[],cp:null});wid=id;$('wn').value='';wSave();wUI()};
+$('wdel').onclick=()=>{if(worlds.length<2){alert('Poslední svět nejde smazat.');return}if(confirm('Opravdu smazat svět „'+cw().name+'“?')){worlds=worlds.filter(w=>w.id!==wid);wid=worlds[0].id;wSave();wUI()}};
+wLoad();wUI();hangar();requestAnimationFrame(loop);
 </script>
 <script type="module">
 import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
@@ -323,13 +340,13 @@ const app=initializeApp({
   databaseURL:DB_URL
 });
 const auth=getAuth(app),db=getDatabase(app),$$=id=>document.getElementById(id);
-let stop=null,stopM=null,lastJ='',room='',isAdmin=false,mm={},cm='team',lastRun=null,stopS=null,stopD=null,seen={};
+let stop=null,stopM=null,lastJ='',room='',isAdmin=false,mm={},cm='team',lastRun=null,stopS=null,stopD=null,seen={},sid='';const sess=Math.random().toString(36).slice(2,7);
 $$('login').onclick=()=>signInWithPopup(auth,new GoogleAuthProvider()).catch(e=>{console.error(e);$$('net').textContent='Přihlášení se nezdařilo: '+(e.code||e.message)+' (doména: '+location.hostname+')'});
 [['team','Team match'],['duel','1V1']].forEach(([k,n])=>{const b=document.createElement('button');b.className='opt';b.textContent=n;b.dataset.k=k;b.onclick=()=>{if(isAdmin){cm=k;lobbyUI()}};$$('modes').appendChild(b)});
 $$('go').onclick=()=>{if(!isAdmin)return;set(ref(db,`meta/${room}/mode`),cm).then(()=>set(ref(db,`meta/${room}/run`),Date.now())).catch(()=>{$$('wait').textContent='Spuštění selhalo (zkontroluj pravidla databáze)'})};
 function lobbyUI(){
   const u=auth.currentUser;$$('lob').style.display=u?'flex':'none';if(!u)return;
-  const nm=id=>id===u.uid?'Ty':String(names[id]||'Hráč').slice(0,14);
+  const nm=id=>id===sid?'Ty':String(names[id]||'Hráč').slice(0,14);
   $$('plist').textContent='Hráči: '+peersNow.filter(p=>p.kind==='viewer').map(p=>nm(p.by)+(p.by===mm.admin?' ★':'')).join(', ');
   [...$$('modes').children].forEach(b=>{b.classList.toggle('on',b.dataset.k===(isAdmin?cm:(mm.mode||'team')));b.disabled=!isAdmin});
   $$('go').style.display=isAdmin?'inline-block':'none';
@@ -338,28 +355,28 @@ function lobbyUI(){
 function join(code){
   const u=auth.currentUser;if(!u)return;
   if(stop)stop();if(stopM)stopM();if(stopS)stopS();if(stopD)stopD();
-  room=code;lastRun=null;isAdmin=false;mm={};lastJ='';
-  const me=ref(db,`rooms/${code}/${u.uid}`),ad=ref(db,`meta/${code}/admin`);
+  room=code;lastRun=null;isAdmin=false;mm={};lastJ='';sid=u.uid+'_'+sess;
+  const me=ref(db,`rooms/${code}/${sid}`),ad=ref(db,`meta/${code}/admin`);
   onDisconnect(me).remove();onDisconnect(ad).remove().catch(()=>{});
   rm={presence:async o=>{const j=JSON.stringify(o);if(j===lastJ)return;lastJ=j;await set(me,{...o,n:(u.displayName||'Hráč').slice(0,14)})}};
   stop=onValue(ref(db,`rooms/${code}`),s=>{
-    peersNow=Object.entries(s.val()||{}).map(([id,p])=>({by:id,isMe:id===u.uid,kind:'viewer',presence:p}));
+    peersNow=Object.entries(s.val()||{}).map(([id,p])=>({by:id,isMe:id===sid,kind:'viewer',presence:p}));
     peersNow.forEach(p=>names[p.by]=p.presence.n);
     $$('net').textContent=`Místnost „${code}“: online ${peersNow.length}`;lobbyUI();
   },e=>{$$('net').textContent='Databáze odmítla přístup (zkontroluj pravidla)'});
-  stopS=onValue(ref(db,`sim/${code}`),s=>{const v=s.val();if(v&&cl)snapIn=v},()=>{});
+  stopS=onValue(ref(db,`sim/${code}`),s=>{const v=s.val();if(v&&cl)snapIn=v},()=>{syncMsg='ČTENÍ ODMÍTNUTO – nahraj nová pravidla databáze'});
   stopD=onValue(ref(db,`dmg/${code}`),s=>{if(!isAdmin||!shared)return;const all=s.val()||{};
-    for(const uid in all){if(uid===u.uid)continue;const o=all[uid];if(!o||o.r!==runId)continue;const d=o.d||{};
+    for(const uid in all){if(uid===sid)continue;const o=all[uid];if(!o||o.r!==runId)continue;const d=o.d||{};
       for(const id in d){const k=uid+'|'+id,delta=d[id]-(seen[k]||0);if(delta>0){seen[k]=d[id];applyDmg(id,delta)}}}},()=>{});
   stopM=onValue(ref(db,`meta/${code}`),s=>{
-    const m=s.val()||{};if(!m.admin)set(ad,u.uid).catch(()=>{});
-    isAdmin=m.admin===u.uid;host=isAdmin;mm=m;
-    if(lastRun===null)lastRun=m.run||0;else if(m.run&&m.run!==lastRun){lastRun=m.run;seen={};set(ref(db,`dmg/${code}/${u.uid}`),null).catch(()=>{});startMatch(m.mode==='duel'?'duel':'team',m.run)}
+    const m=s.val()||{};if(!m.admin)set(ad,sid).catch(()=>{});
+    isAdmin=m.admin===sid;host=isAdmin;mm=m;
+    if(lastRun===null)lastRun=m.run||0;else if(m.run&&m.run!==lastRun){lastRun=m.run;seen={};set(ref(db,`dmg/${code}/${sid}`),null).catch(()=>{});startMatch(m.mode==='duel'?'duel':'team',m.run)}
     lobbyUI();
   },()=>{});
 }
-window.netSnap=sn=>{if(room)set(ref(db,`sim/${room}`),sn).catch(()=>{})};
-window.netDmg=d=>{const u=auth.currentUser;if(u&&room)set(ref(db,`dmg/${room}/${u.uid}`),{r:runId,d}).catch(()=>{})};
+window.netSnap=sn=>{if(room)set(ref(db,`sim/${room}`),sn).then(()=>{syncMsg='sync OK'}).catch(()=>{syncMsg='ZÁPIS ODMÍTNUT – nahraj nová pravidla databáze'})};
+window.netDmg=d=>{if(room&&sid)set(ref(db,`dmg/${room}/${sid}`),{r:runId,d}).catch(()=>{})};
 async function loadLB(){
   try{const s=await get(query(ref(db,'scores'),orderByChild('best'),limitToLast(5)));
   const a=[];s.forEach(c=>{a.unshift(c.val())});

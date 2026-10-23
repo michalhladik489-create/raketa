@@ -65,12 +65,12 @@ input{font:inherit;color:var(--ink);background:rgba(56,232,255,.06);border:1px s
 <div class="col"><h1>Hvězdná eskadra</h1><canvas id="pv" width="200" height="120"></canvas><p id="sn"></p><div class="row" id="hulls"></div><p id="hd" class="sm"></p><div class="row" id="pals"></div><input id="pn" maxlength="14" placeholder="Jméno hráče" aria-label="Jméno hráče"><p class="sm">A/D · šipky = pohyb · mezerník = střelba<br>B = bomba · M = hudba · ESC = pauza · F1 = nápověda</p></div>
 <div class="col">
 <div class="row" style="align-items:center"><button class="btn s sm2" id="login" style="display:none">Přihlásit přes Google</button><span id="who" class="sm"></span></div>
-<input id="rc" value="hlavni" maxlength="20" placeholder="Kód místnosti" aria-label="Kód místnosti">
+<div class="row"><input id="rc" value="hlavni" maxlength="20" placeholder="Kód místnosti" aria-label="Kód místnosti"><button class="btn s sm2" id="rj">Potvrdit místnost</button></div>
 <p id="net" class="sm">Načítání…</p>
 <div id="lob"><p id="plist" class="sm"></p><div class="row" id="modes"></div><p id="wait" class="sm"></p></div>
 <div class="row" style="align-items:center"><select id="ws" aria-label="Svět"></select><button class="btn s sm2" id="wdel">Smazat</button></div>
 <div class="row"><input id="wn" maxlength="24" placeholder="Název nového světa"><button class="btn s sm2" id="wnew">Vytvořit svět</button></div>
-<div class="acts"><button class="btn" id="go" style="display:none">Spustit hru</button><button class="btn" id="play">Hrát solo</button><button class="btn s cpb" style="display:none"></button><button class="btn s" id="mapb">Mapa levelů</button></div>
+<div class="acts"><button class="btn" id="jn" style="display:none">Připojit se do rozehrané hry</button><button class="btn" id="go" style="display:none">Spustit hru</button><button class="btn" id="play">Hrát solo</button><button class="btn s cpb" style="display:none"></button><button class="btn s" id="mapb">Mapa levelů</button></div>
 </div>
 <div class="col" style="align-items:stretch;text-align:left"><b>Statistiky</b><p id="best"></p><p class="lb"></p><p id="wh" style="white-space:pre-line" class="sm"></p><button class="btn s sm2" id="hclr">Smazat historii</button></div>
 </div>
@@ -135,7 +135,7 @@ function hangar(){
  $('hulls').innerHTML='';$('pals').innerHTML='';
  HU.forEach((u,i)=>{const b=document.createElement('button');b.className='opt'+(cfg.h==i?' on':'');b.textContent=u.n;b.onclick=()=>{cfg.h=i;save();hangar()};$('hulls').appendChild(b)});
  PAL.forEach((p,i)=>{const b=document.createElement('button');b.className='sw'+(cfg.c==i?' on':'');b.style.background=p.b;b.style.color=p.c;b.title=p.n;b.setAttribute('aria-label',p.n);b.onclick=()=>{cfg.c=i;save();hangar()};$('pals').appendChild(b)});
- $('hd').textContent=HU[cfg.h].d;$('sn').textContent=HU[cfg.h].n+' · '+PAL[cfg.c].n;cpUI();$('best').textContent=best?'Rekord: '+best:'';
+ $('hd').textContent=HU[cfg.h].d;$('sn').textContent=HU[cfg.h].n+' · '+PAL[cfg.c].n;cpUI();window.lobbyRefresh&&lobbyRefresh();$('best').textContent=best?'Rekord: '+best:'';
 }
 function save(){try{localStorage.setItem('cfg',JSON.stringify(cfg))}catch(e){}}
 function newGame(){const u=HU[cfg.h];P={x:W/2,y:H-70,lives:u.lives,delay:u.delay,shots:1,dmg:1,spd:u.spd*(W>600?1.3:1),sh:0,cd:0,inv:0,pi:0,mi:0,mc:1,bo:0,pal:PAL[cfg.c],ci:cfg.c,h:cfg.h,u:{}};lvl=1;score=0;startLevel()}
@@ -150,7 +150,7 @@ function show(id){['menu','up','over','cs'].forEach(k=>$(k).classList.toggle('on
 function boom(x,y,c,n){for(let i=0;i<n;i++){const a=Math.random()*6.28,s=40+Math.random()*200;PT.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,l:.5+Math.random()*.5,c})}}
 function shoot(){const n=P.shots;for(let i=0;i<n;i++){const o=i-(n-1)/2;B.push({x:P.x+o*11,y:P.y-22,vx:o*18,vy:-540,d:P.dmg,p:P.pi,h:new Set()})}}
 function hit(n,f){if((P.sh>0&&!f)||P.inv>0||P.dead)return;P.lives-=n||1;P.inv=1.6;shake=12;boom(P.x,P.y,P.pal.c,30);if(P.lives<=0)over()}
-function over(f){if(mode==='duel'&&tleft>0){respawn=1;return}if(shared&&!f){P.dead=1;P.lives=0;boom(P.x,P.y,'#fff',30);return}hist('Konec hry');cpUI();music('b');$('ot').textContent='Konec hry';st='over';if(score>best){best=score;try{localStorage.setItem('hs',best)}catch(e){}}saveScore();$('res').textContent='Skóre '+score+' · Level '+lvl+' · Rekord '+best;show('over');$('bb').style.display='none';bn=-1}
+function over(f){if(mode==='duel'&&tleft>0){respawn=1;return}if(shared&&!f){P.dead=1;P.lives=0;boom(P.x,P.y,'#fff',30);return}hist('Konec hry');if(host&&mode!=='solo')window.netEnd&&netEnd();cpUI();music('b');$('ot').textContent='Konec hry';st='over';if(score>best){best=score;try{localStorage.setItem('hs',best)}catch(e){}}saveScore();$('res').textContent='Skóre '+score+' · Level '+lvl+' · Rekord '+best;show('over');$('bb').style.display='none';bn=-1}
 function levelDone(){if(shared&&P.dead){st='wait';ready=lvl;waitT=0;return}st='upgrade';score+=100*lvl;hist(lvl%5==0?'Boss poražen':'');picks=lvl%5==0?2:1;showPicks()}
 function showPicks(){
  const pool=UP.filter(u=>u.ok()).sort(()=>Math.random()-.5).slice(0,3);
@@ -303,7 +303,7 @@ function music(w){curM=w;for(const k in MU){const a=MU[k];if(k===w&&!muted){if(k
 function toggleMute(){muted=!muted;music(curM)}
 function toggleGuide(){guideOn=!guideOn;$('gd').classList.toggle('on',guideOn)}
 function togglePause(){if(guideOn){toggleGuide();return}if(!paused&&!['play','upgrade','cut','wait'].includes(st))return;paused=!paused;$('ps').classList.toggle('on',paused)}
-function leaveGame(){paused=false;$('ps').classList.remove('on');cut=null;shared=false;cl=false;st='menu';$('bb').style.display='none';bn=-1;music(null);if(rm)rm.presence({a:0,s:0,l:1}).catch(()=>{});hangar();show('menu')}
+function leaveGame(){if(host&&mode!=='solo'&&st!=='menu')window.netEnd&&netEnd();paused=false;$('ps').classList.remove('on');cut=null;shared=false;cl=false;st='menu';$('bb').style.display='none';bn=-1;music(null);if(rm)rm.presence({a:0,s:0,l:1}).catch(()=>{});hangar();show('menu')}
 function nextLevel(){if(shared){ready=lvl;st='wait';waitT=0;show(null);return}lvl++;startLevel()}
 function mkSnap(){return{r:runId,lv:lvl,ph:st==='over'?'over':st==='cut'?'cut':(st==='upgrade'||st==='wait')?'up':'play',
  E:E.map(e=>[e.id,Math.round(px(e)),Math.round(py(e)),e.t=='n'?0:e.t=='s'?1:2,e.hp,e.sm?1:0]),
@@ -326,8 +326,8 @@ function applySnap(sn){
 }
 function bossFor(l){return l==5?[0,0]:l==50?[0,1]:l==100?[0,2]:[1+(l/5)%5,0]}
 function solo(){mode='solo';dm=.75;shared=false;cl=false;newGame()}
-function startMatch(m,run){mode=m;runId=run||0;teamN=Math.max(1,peersNow.filter(p=>p.kind==='viewer').length);dm=m==='team'?Math.max(.9,1+.25*(teamN-2)):1;tleft=100;cut=null;shared=m==='team'&&teamN>1;cl=shared&&!host;syncMsg=cl?'čekám na hostitele…':'sync…';ready=0;dmgs={};lastDmgJ='';snapIn=null;lastSnapT=performance.now();paused=false;$('ps').classList.remove('on');newGame()}
-function endDuel(){st='over';$('ot').textContent='Konec zápasu 1V1';$('res').textContent='Čekám na výsledky…';show('over');$('bb').style.display='none';bn=-1;
+function startMatch(m,run){mode=m;runId=run||0;teamN=Math.max(1,peersNow.filter(p=>p.kind==='viewer').length);dm=m==='team'?Math.max(.9,1+.25*(teamN-2)):1;tleft=100;cut=null;shared=m==='team';cl=shared&&!host;syncMsg=cl?'čekám na hostitele…':'sync…';ready=0;dmgs={};lastDmgJ='';snapIn=null;lastSnapT=performance.now();paused=false;$('ps').classList.remove('on');newGame()}
+function endDuel(){if(host)window.netEnd&&netEnd();st='over';$('ot').textContent='Konec zápasu 1V1';$('res').textContent='Čekám na výsledky…';show('over');$('bb').style.display='none';bn=-1;
  setTimeout(()=>{const r=peersNow.filter(p=>p.kind==='viewer').map(p=>({n:p.isMe?'Ty':String(names[p.by]||'Hráč').slice(0,14),s:p.isMe?score:+(p.presence||{}).s||0})).sort((a,b)=>b.s-a.s);
  $('res').textContent=(r.length>1?(r[0].n==='Ty'?'Vyhrál jsi!':'Vyhrál '+r[0].n):'Dohráno')+'\n'+r.map((x,i)=>(i+1)+'. '+x.n+' – '+x.s).join('\n')},1500);saveScore()}
 function cutscene(){const d=BS[bs.type];music(bs.type==0?'s':'t');cut={l:d.s[Math.min(bs.stage,d.s.length-1)],i:0,c:0};st='cut';$('csn').textContent='* '+d.n;show('cs')}
@@ -387,24 +387,25 @@ const auth=getAuth(app),db=getDatabase(app),$$=id=>document.getElementById(id);
 let stop=null,stopM=null,lastJ='',room='',isAdmin=false,mm={},cm='team',lastRun=null,stopS=null,stopD=null,seen={},sid='';const sess=Math.random().toString(36).slice(2,7);
 $$('login').onclick=()=>signInWithPopup(auth,new GoogleAuthProvider()).catch(e=>{console.error(e);$$('net').textContent='Přihlášení se nezdařilo: '+(e.code||e.message)+' (doména: '+location.hostname+')'});
 [['team','Team match'],['duel','1V1']].forEach(([k,n])=>{const b=document.createElement('button');b.className='opt';b.textContent=n;b.dataset.k=k;b.onclick=()=>{if(isAdmin){cm=k;lobbyUI()}};$$('modes').appendChild(b)});
-$$('go').onclick=()=>{if(!isAdmin)return;set(ref(db,`meta/${room}/mode`),cm).then(()=>set(ref(db,`meta/${room}/run`),Date.now())).catch(()=>{$$('wait').textContent='Spuštění selhalo (zkontroluj pravidla databáze)'})};
+$$('go').onclick=()=>{if(!isAdmin)return;set(ref(db,`meta/${room}/mode`),cm).then(()=>set(ref(db,`meta/${room}/on`),true)).then(()=>{onDisconnect(ref(db,`meta/${room}/on`)).set(false);return set(ref(db,`meta/${room}/run`),Date.now())}).catch(()=>{$$('wait').textContent='Spuštění selhalo (zkontroluj pravidla databáze)'})};
 function lobbyUI(){
   const u=auth.currentUser;$$('lob').style.display=u?'flex':'none';if(!u)return;
   const nm=id=>id===sid?'Ty':String(names[id]||'Hráč').slice(0,14);
   $$('plist').textContent='Hráči: '+peersNow.filter(p=>p.kind==='viewer').map(p=>nm(p.by)+(p.by===mm.admin?' ★':'')).join(', ');
   [...$$('modes').children].forEach(b=>{b.classList.toggle('on',b.dataset.k===(isAdmin?cm:(mm.mode||'team')));b.disabled=!isAdmin});
   $$('go').style.display=isAdmin?'inline-block':'none';
-  $$('wait').textContent=isAdmin?'Jsi admin lobby ★ – vyber režim a spusť hru.':'Čeká se, až admin spustí hru.';
+  $$('wait').textContent=isAdmin?'Jsi admin lobby ★ – vyber režim a spusť hru.':(mm.on?(mm.mode==='duel'?'Zápas 1V1 právě běží – počkej na další kolo.':'Hra právě běží – můžeš se připojit.'):'Čeká se, až admin spustí hru.');
+  $$('jn').style.display=(!isAdmin&&mm.on&&mm.mode!=='duel'&&st==='menu')?'inline-block':'none';
 }
-let adRef=null;
-function claim(){if(!adRef)return;const present=peersNow.some(p=>p.by===mm.admin);if(!mm.admin||(!present&&peersNow.some(p=>p.isMe)))set(adRef,sid).catch(()=>{})}
+let adRef=null,metaOk=false;
+function claim(){if(!adRef||!metaOk)return;const present=peersNow.some(p=>p.by===mm.admin);if(!mm.admin||(!present&&peersNow.some(p=>p.isMe)))set(adRef,sid).catch(()=>{})}
 function join(code){
-  const u=auth.currentUser;if(!u)return;
+  const u=auth.currentUser;if(!u)return;if(room===code&&stop)return;
   if(stop)stop();if(stopM)stopM();if(stopS)stopS();if(stopD)stopD();
   room=code;lastRun=null;isAdmin=false;mm={};lastJ='';sid=u.uid+'_'+sess;
   const me=ref(db,`rooms/${code}/${sid}`),ad=ref(db,`meta/${code}/admin`);
-  adRef=ad;onDisconnect(me).remove();onDisconnect(ad).remove().catch(()=>{});
-  rm={presence:async o=>{const j=JSON.stringify(o)+pname;if(j===lastJ)return;lastJ=j;await set(me,{...o,n:(pname||u.displayName||'Hráč').slice(0,14)})}};
+  adRef=ad;metaOk=false;onDisconnect(me).remove();onDisconnect(ad).remove().catch(()=>{});
+  rm={presence:async o=>{const j=JSON.stringify(o)+pname;if(j===lastJ)return;lastJ=j;try{await set(me,{...o,n:(pname||u.displayName||'Hráč').slice(0,14)})}catch(e){lastJ='';$$('net').textContent='Zápis přítomnosti odmítnut – nahraj pravidla databáze'}}};
   stop=onValue(ref(db,`rooms/${code}`),s=>{
     peersNow=Object.entries(s.val()||{}).map(([id,p])=>({by:id,isMe:id===sid,kind:'viewer',presence:p}));
     peersNow.forEach(p=>names[p.by]=p.presence.n);
@@ -415,12 +416,16 @@ function join(code){
     for(const uid in all){if(uid===sid)continue;const o=all[uid];if(!o||o.r!==runId)continue;const d=o.d||{};
       for(const id in d){const k=uid+'|'+id,delta=d[id]-(seen[k]||0);if(delta>0){seen[k]=d[id];applyDmg(id,delta)}}}},()=>{});
   stopM=onValue(ref(db,`meta/${code}`),s=>{
-    const m=s.val()||{};mm=m;claim();
+    const m=s.val()||{};mm=m;metaOk=true;claim();
     isAdmin=m.admin===sid;host=isAdmin;
     if(lastRun===null)lastRun=m.run||0;else if(m.run&&m.run!==lastRun){lastRun=m.run;seen={};set(ref(db,`dmg/${code}/${sid}`),null).catch(()=>{});startMatch(m.mode==='duel'?'duel':'team',m.run)}
     lobbyUI();
   },()=>{});
 }
+$$('jn').onclick=()=>{if(mm.on&&mm.mode!=='duel'){seen={};startMatch('team',mm.run)}};
+$$('rj').onclick=()=>join(rcode());
+window.lobbyRefresh=lobbyUI;
+window.netEnd=()=>{if(isAdmin&&room)set(ref(db,`meta/${room}/on`),false).catch(()=>{})};
 window.netSnap=sn=>{if(room)set(ref(db,`sim/${room}`),sn).then(()=>{syncMsg='sync OK'}).catch(()=>{syncMsg='ZÁPIS ODMÍTNUT – nahraj nová pravidla databáze'})};
 window.netDmg=d=>{if(room&&sid)set(ref(db,`dmg/${room}/${sid}`),{r:runId,d}).catch(()=>{})};
 async function loadLB(){

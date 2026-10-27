@@ -32,6 +32,9 @@ button:focus-visible{outline:3px solid var(--am);outline-offset:3px}
 input{font:inherit;color:var(--ink);background:rgba(56,232,255,.06);border:1px solid rgba(143,152,201,.4);border-radius:10px;padding:7px 10px;width:130px;text-align:center}.lb{white-space:pre-line;text-align:left}
 #menu:not(.wide){justify-content:flex-start}#chat{width:100%;display:flex;flex-direction:column;gap:6px}#cbox{width:100%;height:92px;overflow:auto;text-align:left;font-size:12px;background:rgba(0,0,0,.25);border-radius:10px;padding:6px 8px;box-sizing:border-box;word-break:break-word}
 .sm{font-size:12px}
+#menu.wide .col.plain{overflow:hidden;background:none;border:none;padding:0;justify-content:flex-start}
+.scr{display:flex;flex-direction:column;gap:8px;width:100%;flex:1;min-height:0;overflow:auto}.dock{flex:none;display:flex;flex-wrap:wrap;gap:8px;justify-content:center;width:100%;padding-top:2px}.dock .btn{padding:9px 20px;font-size:16px}
+#menu:not(.wide) .scr{flex:none;overflow:visible}
 .card2{width:100%;background:rgba(255,255,255,.03);border:1px solid rgba(143,152,201,.25);border-radius:14px;padding:10px;display:flex;flex-direction:column;gap:8px;align-items:center;box-sizing:border-box}.card2 h3{margin:0;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--cy)}
 .chips{display:flex;flex-wrap:wrap;gap:6px;justify-content:center}.chip{padding:3px 10px;border-radius:999px;border:1px solid rgba(143,152,201,.4);font-size:12px}.chip.me{border-color:var(--cy);color:var(--cy)}.sm2{padding:6px 12px!important;font-size:13px!important}
 #menu .col{display:contents}
@@ -44,7 +47,7 @@ input{font:inherit;color:var(--ink);background:rgba(56,232,255,.06);border:1px s
 .nd{width:46px;height:46px;border-radius:50%;border:2px solid rgba(143,152,201,.35);background:rgba(255,255,255,.05);color:var(--dim);font-weight:700;flex:none;padding:0}
 .nd.ok{border-color:var(--cy);color:var(--ink);background:rgba(56,232,255,.15)}.nd.bs{border-color:var(--mg);width:56px;height:56px}.nd.bs.ok{background:rgba(255,79,163,.25)}.nd.cur{box-shadow:0 0 18px var(--cy)}.nd:disabled{cursor:not-allowed;opacity:.55}
 #hk{position:absolute;top:6px;right:8px;display:none;gap:6px;z-index:5}
-@media (max-height:520px){#menu.wide{padding:8px;gap:8px}#menu .col h1{display:none}#menu.wide .col{padding:8px;gap:6px}#pv{height:70px;width:auto}#cbox{height:56px}.card2{padding:6px}}
+@media (max-height:520px){.opt{padding:4px 10px;font-size:13px}.sw{width:24px;height:24px}#menu .col p{margin:0}.dock .btn{padding:6px 14px;font-size:14px}#menu.wide{padding:8px;gap:8px}#menu .col h1{display:none}#menu.wide .col{padding:8px;gap:6px}#pv{height:70px;width:auto}#cbox{height:56px}.card2{padding:6px}}
 #rot{z-index:40;background:rgba(7,10,28,.96)}#rot .ph{font-size:64px;display:inline-block;animation:rt 2.4s ease-in-out infinite}@keyframes rt{0%,30%{transform:rotate(0)}60%,100%{transform:rotate(-90deg)}}
 #hk button{background:rgba(7,10,28,.6);border:1px solid rgba(143,152,201,.4);border-radius:8px;padding:3px 8px;font-size:11px;color:var(--dim)}
 .gt{max-width:62ch;text-align:left;display:flex;flex-direction:column;gap:6px;max-height:70%;overflow:auto}.gt p{max-width:none;color:var(--ink)}
@@ -68,7 +71,8 @@ input{font:inherit;color:var(--ink);background:rgba(56,232,255,.06);border:1px s
 <button id="bb">Bomba (B)</button>
 <div class="ov on" id="menu">
 <div class="col"><h1>Hvězdná eskadra</h1><canvas id="pv" width="200" height="120"></canvas><p id="sn"></p><div class="row" id="hulls"></div><p id="hd" class="sm"></p><div class="row" id="pals"></div><input id="pn" maxlength="14" placeholder="Jméno hráče" aria-label="Jméno hráče"><p id="ver" class="sm" style="opacity:.55"></p><p class="sm">A/D · šipky = pohyb · mezerník = střelba<br>B = bomba · M = hudba · ESC = pauza · F1 = nápověda</p></div>
-<div class="col">
+<div class="col plain">
+<div class="scr">
 <section class="card2"><h3>Multiplayer</h3>
 <div class="row" style="align-items:center"><button class="btn s sm2" id="login" style="display:none">Přihlásit přes Google</button><span id="who" class="sm"></span></div>
 <div class="row"><input id="rc" value="hlavni" maxlength="20" placeholder="Kód místnosti" aria-label="Kód místnosti"><button class="btn s sm2" id="rj">Potvrdit místnost</button></div>
@@ -76,14 +80,14 @@ input{font:inherit;color:var(--ink);background:rgba(56,232,255,.06);border:1px s
 <div id="lob"><div id="plist" class="chips"></div><p id="vw" class="sm" style="color:#ffc247"></p>
 <div class="row" id="modes"></div><p id="md" class="sm"></p>
 <div id="chat"><div id="cbox"></div><div class="row"><input id="ci" maxlength="200" placeholder="Napiš zprávu…" aria-label="Chat"><button class="btn s sm2" id="csd">Odeslat</button></div></div>
-<p id="wait" class="sm"></p>
-<div class="row"><button class="btn" id="jn" style="display:none">Připojit se do rozehrané hry</button><button class="btn" id="go" style="display:none">Spustit hru</button></div></div>
+<p id="wait" class="sm"></p></div>
 </section>
 <section class="card2"><h3>Solo · svět</h3>
 <div class="row" style="align-items:center"><select id="ws" aria-label="Svět"></select><button class="btn s sm2" id="wdel">Smazat</button></div>
 <div class="row"><input id="wn" maxlength="24" placeholder="Název nového světa"><button class="btn s sm2" id="wnew">Vytvořit svět</button></div>
-<div class="row"><button class="btn" id="play">Hrát solo</button><button class="btn s cpb" style="display:none"></button><button class="btn s" id="mapb">Mapa levelů</button></div>
 </section>
+</div>
+<div class="dock"><button class="btn" id="jn" style="display:none">Připojit se do hry</button><button class="btn" id="go" style="display:none">Spustit hru</button><button class="btn" id="play">Hrát solo</button><button class="btn s cpb" style="display:none"></button><button class="btn s" id="mapb">Mapa levelů</button></div>
 </div>
 <div class="col" style="align-items:stretch;text-align:left"><b>Statistiky</b><p id="best"></p><p class="lb"></p><p id="wh" style="white-space:pre-line" class="sm"></p><button class="btn s sm2" id="hclr">Smazat historii</button></div>
 </div>
@@ -100,6 +104,7 @@ input{font:inherit;color:var(--ink);background:rgba(56,232,255,.06);border:1px s
 <div class="ov" id="gd"><h2>Průvodce hrou</h2><div class="gt"><p><b>Ovládání:</b> A/D nebo šipky = pohyb, mezerník = střelba (na mobilu táhni prstem a loď střílí sama).</p><p><b>Štít:</b> trvá jen omezenou dobu (6 s, od levelu 10 celých 10 s). Každá pohlcená střela ubere část času.</p><p><b>Těžké červené střely:</b> berou 2 životy, se štítem 1 život.</p><p><b>Bomba (B):</b> smaže nepřátelské střely a zraní nepřátele o 30 % života, bosse o 3 %. Maximum 2.</p><p><b>Bonusy ze země:</b> S = štít, B = bomba, + = život.</p><p><b>Bossové:</b> každý 5. level. V půlce života jsou 8 s nezranitelní, to jen přežij. Po každém bossovi je checkpoint. Pásler se vrací na levelu 50 a 100.</p><p><b>Upgrady:</b> po každém levelu jedno vylepšení, po bossovi dvě.</p><p><b>Světy:</b> každý svět má vlastní postup, historii a mapu levelů, kde skáčeš na už dosažené levely.</p><p><b>Team match:</b> společní nepřátelé a boss, padlí se oživí v dalším levelu. <b>1V1:</b> 100 s závod o skóre.</p><p><b>Klávesy:</b> ESC pauza / opuštění hry, F1 tato nápověda, M hudba.</p></div><button class="btn s" id="gdx">Zavřít (F1)</button></div>
 <div id="hk"><button id="hkp">ESC · pauza</button><button id="hkg">F1 · nápověda</button></div>
 <div class="ov" id="rot"><div class="ph">📱</div><h2>Otoč telefon na šířku</h2><p>Hra je navržená pro širokou obrazovku, uvidíš víc a hraje se lépe.</p><button class="btn" id="fsb">Celá obrazovka</button><button class="btn s" id="rotx">Hrát i na výšku</button></div>
+<div id="er" style="position:absolute;left:6px;bottom:6px;z-index:60;font-size:11px;color:#ff6a6a;max-width:90%;pointer-events:none"></div>
 <div id="ld"><div class="scene"><div class="cube"><i></i><i></i><i></i><i></i><i></i><i></i></div><div class="ring"></div></div><b>NAČÍTÁNÍ</b><div class="bar"><span id="lbar"></span></div><span id="lpct" class="sm"></span></div>
 </div>
 <script>
@@ -286,27 +291,27 @@ function draw(t){
   {const lst=peersNow.filter(p=>p.kind==='viewer').map(p=>{const q=p.presence||{};return{n:p.isMe?'Ty':String(names[p.by]||'Hráč').slice(0,14),s:+q.s||0,l:+q.l||0}}).sort((a,b)=>b.s-a.s).slice(0,6);if(lst.length>1){g.textAlign='right';g.font='600 12px Chakra Petch,sans-serif';lst.forEach((r,i)=>{g.fillStyle=r.n==='Ty'?'#38e8ff':'#8f98c9';g.fillText(r.n+' · L'+r.l+' · '+r.s,W-14,96+i*16)})}}
   if(bs){g.fillStyle='rgba(255,255,255,.12)';g.fillRect(40,44,W-80,8);g.fillStyle=BC[bs.type];g.fillRect(40,44,(W-80)*Math.max(0,bs.hp/bs.mh),8);g.fillStyle='#e8ecff';g.font='700 12px Chakra Petch,sans-serif';g.textAlign='center';g.fillText(BN[bs.type],W/2,66)}
   if(P.sh>0){g.fillStyle='rgba(56,232,255,.25)';g.fillRect(14,H-12,W-28,4);g.fillStyle='#38e8ff';g.fillRect(14,H-12,(W-28)*Math.min(1,P.sh/(lvl>=10?10:6)),4)}
-  if(bs&&bs.dd>0){g.textAlign='center';g.fillStyle='#ffc247';g.font='700 26px Chakra Petch,sans-serif';g.fillText('PŘEŽIJ! '+Math.ceil(bs.dd)+' s',W/2,H/2-60)}if((P&&P.dead&&st==='play')||st==='wait'){g.textAlign='center';g.fillStyle='#ffc247';g.font='700 22px Chakra Petch,sans-serif';g.fillText(st==='wait'?'Čeká se na spoluhráče…':'Padl jsi – oživíš se v dalším levelu',W/2,H/2)}if(shared){g.textAlign='left';g.fillStyle='#8f98c9';g.font='600 11px Chakra Petch,sans-serif';g.fillText('TEAM · '+(host?'hostitel':'klient')+' · hráčů '+teamN+' · '+syncMsg,14,48)}if(mode==='duel'&&st==='play'){g.textAlign='left';g.fillStyle='#ffc247';g.font='700 20px Chakra Petch,sans-serif';g.fillText('⏱ '+Math.ceil(tleft)+' s',14,52)}
+  if(bs&&bs.dd>0){g.textAlign='center';g.fillStyle='#ffc247';g.font='700 26px Chakra Petch,sans-serif';g.fillText('PŘEŽIJ! '+Math.ceil(bs.dd)+' s',W/2,H/2-60)}if((P&&P.dead&&st==='play')||st==='wait'){g.textAlign='center';g.fillStyle='#ffc247';g.font='700 22px Chakra Petch,sans-serif';g.fillText(st==='wait'?(host?'Čeká se na spoluhráče… '+Math.max(0,Math.ceil(15-waitT))+' s':'Čeká se na ostatní…'):'Padl jsi – oživíš se v dalším levelu',W/2,H/2)}if(shared){g.textAlign='left';g.fillStyle='#8f98c9';g.font='600 11px Chakra Petch,sans-serif';g.fillText('TEAM · '+(host?'hostitel':'klient')+' · hráčů '+teamN+' · '+syncMsg,14,48)}if(mode==='duel'&&st==='play'){g.textAlign='left';g.fillStyle='#ffc247';g.font='700 20px Chakra Petch,sans-serif';g.fillText('⏱ '+Math.ceil(tleft)+' s',14,52)}
   if(intro>0&&st==='play'){g.textAlign='center';g.globalAlpha=Math.min(1,intro);g.fillStyle=bs?'#ff4fa3':'#ffc247';g.font='700 34px Chakra Petch,sans-serif';g.fillText(bs?'Boss: '+BN[bs.type]:'Level '+lvl,W/2,H/2)}g.globalAlpha=1;
   if(P.bo!==bn){bn=P.bo;$('bb').style.display=bn>0?'block':'none';$('bb').textContent='Bomba ×'+bn+' (B)'}}
  if(fx>0){g.fillStyle='rgba(255,255,255,'+fx*.6+')';g.fillRect(0,0,W,H)}
  g.restore();
 }
-function loop(ts){
+function loop(ts){try{frame(ts)}catch(e){console.error(e);const r=$('er');if(r)r.textContent='CHYBA: '+(e&&e.message)}requestAnimationFrame(loop)}
+function frame(ts){
  const dt=Math.min(.033,(ts-last)/1000||0);last=ts;
  stars.forEach(s=>{s.y+=s.z*40*dt;if(s.y>H){s.y=-4;s.x=Math.random()*W}});
  PT.forEach(p=>{p.x+=p.vx*dt;p.y+=p.vy*dt;p.l-=dt});PT=PT.filter(p=>p.l>0);
  if((st!=='menu')!==hkOn){hkOn=st!=='menu';$('hk').style.display=hkOn?'flex':'none'}
  if(snapIn){applySnap(snapIn);snapIn=null}
  if(shared&&host&&st!=='menu'&&ts-lastSnap>120){lastSnap=ts;window.netSnap&&netSnap(mkSnap())}
- if(shared&&host&&st==='wait'){waitT+=dt;const al=peersNow.filter(p=>!p.isMe&&p.kind==='viewer'&&p.presence&&p.presence.a);if(al.every(p=>+p.presence.rd>=lvl)||waitT>25){lvl++;startLevel()}}
- if(shared&&host&&st==='play'&&P.dead){const al=peersNow.filter(p=>!p.isMe&&p.kind==='viewer'&&p.presence&&p.presence.a);specT=al.length?0:specT+dt;if(specT>1.5)over(true)}
+ if(shared&&host&&st==='wait'){waitT+=dt;const al=peersNow.filter(p=>!p.isMe&&p.kind==='viewer'&&p.presence&&p.presence.a&&p.presence.r===runId);if(al.every(p=>+p.presence.rd>=lvl)||waitT>15){lvl++;startLevel()}}
+ if(shared&&host&&st==='play'&&P.dead){const al=peersNow.filter(p=>!p.isMe&&p.kind==='viewer'&&p.presence&&p.presence.a&&p.presence.r===runId);specT=al.length?0:specT+dt;if(specT>1.5)over(true)}
  if(cl&&(st==='play'||st==='wait'||st==='upgrade')&&ts-lastSnapT>7000)over(true);
  if(cl&&ts-lastDm>120){lastDm=ts;const j=JSON.stringify(dmgs);if(j!==lastDmgJ){lastDmgJ=j;window.netDmg&&netDmg(dmgs)}}
- if(st==='play'){if(!((paused||guideOn)&&mode==='solo'))update(dt)}else if(st==='cut'&&cut){cut.c+=dt*38;const q=cut.l[cut.i];$('cst').textContent=q.slice(0,Math.min(q.length,cut.c|0));csc.fillStyle='#000';csc.fillRect(0,0,340,190);boss(csc,{x:170,y:100,type:bs.type,stage:bs.stage,fl:0,dd:0},ts,1.7)}else if(st==='spec'){specT+=dt;const al=peersNow.filter(p=>!p.isMe&&p.kind==='viewer'&&p.presence&&p.presence.a),ah=al.find(p=>+p.presence.l>deadLvl);if(ah){P.lives=1;P.inv=2;lvl=+ah.presence.l;startLevel()}else if(specT>2&&!al.length)over(true)}if(rm&&ts-lastSend>100){lastSend=ts;rm.presence(P&&(st==='play'||st==='upgrade'||st==='cut'||st==='wait')&&P.lives>0?{x:Math.round(P.x),y:Math.round(P.y),h:P.h,c:P.ci,s:score,l:lvl,rd:ready,a:1,v:VER,f:(keys.Space||touch!==null)&&!P.dead?1:0,sc:P.shots,fd:Math.round(P.delay)}:{a:0,s:score||0,l:lvl,rd:ready,v:VER}).catch(()=>{})}
+ if(st==='play'){if(!((paused||guideOn)&&mode==='solo'))update(dt)}else if(st==='cut'&&cut){cut.c+=dt*38;const q=cut.l[cut.i];$('cst').textContent=q.slice(0,Math.min(q.length,cut.c|0));csc.fillStyle='#000';csc.fillRect(0,0,340,190);boss(csc,{x:170,y:100,type:bs.type,stage:bs.stage,fl:0,dd:0},ts,1.7)}else if(st==='spec'){specT+=dt;const al=peersNow.filter(p=>!p.isMe&&p.kind==='viewer'&&p.presence&&p.presence.a),ah=al.find(p=>+p.presence.l>deadLvl);if(ah){P.lives=1;P.inv=2;lvl=+ah.presence.l;startLevel()}else if(specT>2&&!al.length)over(true)}if(rm&&ts-lastSend>100){lastSend=ts;rm.presence(P&&(st==='play'||st==='upgrade'||st==='cut'||st==='wait')&&P.lives>0?{x:Math.round(P.x),y:Math.round(P.y),h:P.h,c:P.ci,s:score,l:lvl,rd:ready,a:1,v:VER,r:runId,f:(keys.Space||touch!==null)&&!P.dead?1:0,sc:P.shots,fd:Math.round(P.delay)}:{a:0,s:score||0,l:lvl,rd:ready,v:VER,r:runId}).catch(()=>{})}
  draw(ts);
  if(st==='menu'){pv.clearRect(0,0,200,120);ship(pv,100,62,cfg.h,PAL[cfg.c],ts,1.9)}
- requestAnimationFrame(loop);
 }
 addEventListener('keydown',e=>{if(/INPUT/.test((e.target||{}).tagName||'')&&e.code!=='Escape'&&e.code!=='F1')return;if(['Space','ArrowLeft','ArrowRight'].includes(e.code))e.preventDefault();if((e.code=='Space'||e.code=='Enter')&&st==='cut'&&!e.repeat)cutNext();keys[e.code]=true;if(e.code=='KeyM'&&!/INPUT/.test((e.target||{}).tagName||''))toggleMute();if(e.code=='Escape')togglePause();if(e.code=='F1'){e.preventDefault();toggleGuide()}if(e.code=='KeyB'||e.code=='ShiftLeft')bomb()});
 addEventListener('keyup',e=>keys[e.code]=false);
@@ -317,7 +322,7 @@ cv.addEventListener('pointermove',e=>{if(touch!==null)tx(e)});
 $('play').onclick=solo;$('again').onclick=()=>{if(mode==='solo')solo();else{st='menu';hangar();show('menu')}};$('bb').onclick=bomb;$('cs').onclick=cutNext;$('resume').onclick=togglePause;$('leave').onclick=leaveGame;document.querySelectorAll('.cpb').forEach(b=>b.onclick=cont);
 $('hang').onclick=()=>{st='menu';hangar();show('menu')};
 let rm=null,names={},peersNow=[],lastSend=0,mode='solo',dm=.75,cut=null,respawn=0,tleft=0,teamN=1,deadLvl=0,specT=0,shared=false,host=false,cl=false,eid=0,waitT=0,ready=0,runId=0,lastSnap=0,lastSnapT=0,lastDm=0,snapIn=null,dmgs={},lastDmgJ='',paused=false,curM=null,muted=false,syncMsg='',hvT=0,GB=[],gpos={},gcd={},rotOff=false,guideOn=false,hkOn=false,pname='';
-const csc=$('csc').getContext('2d');const VER='2026-10-25-f';
+const csc=$('csc').getContext('2d');const VER='2026-10-25-h';
 const MU={b:new Audio('music/basicmusic.mp3'),s:new Audio('music/bossmusic.mp3'),t:new Audio('music/sidebossmusic.mp3')};MU.b.loop=MU.s.loop=MU.t.loop=true;MU.b.volume=.35;MU.s.volume=.5;MU.t.volume=.5;
 function music(w){curM=w;for(const k in MU){const a=MU[k];if(k===w&&!muted){if(k!=='b'&&a.paused)a.currentTime=0;a.play().catch(()=>{})}else a.pause()}}
 function toggleMute(){muted=!muted;music(curM)}
@@ -397,7 +402,7 @@ wLoad();wUI();hangar();requestAnimationFrame(loop);
 <script type="module">
 import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import {getAuth,GoogleAuthProvider,signInWithPopup,onAuthStateChanged} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import {getDatabase,ref,set,push,onValue,onDisconnect,get,query,orderByChild,limitToLast} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+import {getDatabase,ref,set,push,remove,onValue,onDisconnect,get,query,orderByChild,limitToLast} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 const DB_URL="https://hvezdarna-42bb5-default-rtdb.europe-west1.firebasedatabase.app";
 const app=initializeApp({
   apiKey:"AIzaSyAaz9TuLrYBtGluNXCbWJLBrFkLUEdSMHw",
@@ -420,12 +425,16 @@ function lobbyUI(){
   $$('md').textContent=(isAdmin?cm:(mm.mode||'team'))==='duel'?'1V1: 100 s závod o nejvyšší skóre, každý hraje svou hru.':'Team match: hrajete spolu proti společným nepřátelům a bossům, padlý se oživí v dalším levelu.';
   [...$$('modes').children].forEach(b=>{b.classList.toggle('on',b.dataset.k===(isAdmin?cm:(mm.mode||'team')));b.disabled=!isAdmin});
   $$('go').style.display=isAdmin?'inline-block':'none';
-  {const old=peersNow.filter(p=>p.kind==='viewer'&&(p.presence||{}).v!==VER);$$('vw').textContent=old.length?'⚠ '+old.map(p=>nm(p.by)).join(', ')+': stará verze hry. Obnov stránku bez cache (Ctrl+F5, na mobilu otevři adresu s ?v='+VER+').':''}
+  {const old=peersNow.filter(p=>p.kind==='viewer'&&(p.presence||{}).v!==VER);$$('vw').textContent=old.length?'⚠ '+[...new Set(old.map(p=>nm(p.by)))].join(', ')+(old.length>1?' (×'+old.length+')':'')+': stará verze hry. Obnov stránku bez cache (Ctrl+F5, na mobilu otevři adresu s ?v='+VER+').':''}
   $$('wait').textContent=isAdmin?'Jsi admin lobby ★ – vyber režim a spusť hru.':(mm.on?(mm.mode==='duel'?'Zápas 1V1 právě běží – počkej na další kolo.':'Hra právě běží – můžeš se připojit.'):'Čeká se, až admin spustí hru.');
   $$('jn').style.display=(!isAdmin&&mm.on&&mm.mode!=='duel'&&st==='menu')?'inline-block':'none';
 }
-let adRef=null,metaOk=false;
-function claim(){if(!adRef||!metaOk)return;const present=peersNow.some(p=>p.by===mm.admin);if(!mm.admin||(!present&&peersNow.some(p=>p.isMe)))set(adRef,sid).catch(()=>{})}
+let adRef=null,metaOk=false,roomsOk=false,joinT=0,srvOff=0,cleaned=false;onValue(ref(db,'.info/serverTimeOffset'),s=>{srvOff=s.val()||0},()=>{});
+function claim(){
+  if(!adRef||!metaOk||!roomsOk)return;
+  if(peersNow.some(p=>p.by===mm.admin))return;
+  const live=peersNow.filter(p=>p.presence&&p.presence.jt!==undefined).sort((a,b)=>(a.presence.jt-b.presence.jt)||(a.by<b.by?-1:1));
+  if(live.length&&live[0].isMe)set(adRef,sid).catch(()=>{})}
 let stopC=null;
 function chatJoin(code){if(stopC)stopC();const box=$$('cbox');box.textContent='';
   stopC=onValue(query(ref(db,`chat/${code}`),limitToLast(30)),s=>{box.textContent='';s.forEach(c=>{const v=c.val()||{},d=document.createElement('div');d.textContent=String(v.n||'Hráč').slice(0,14)+': '+String(v.x||'').slice(0,200);box.appendChild(d)});box.scrollTop=box.scrollHeight},()=>{box.textContent='Chat nedostupný – nahraj nová pravidla databáze.'})}
@@ -436,10 +445,12 @@ function join(code){
   if(stop)stop();if(stopM)stopM();if(stopS)stopS();if(stopD)stopD();
   room=code;lastRun=null;isAdmin=false;mm={};lastJ='';sid=u.uid+'_'+sess;
   const me=ref(db,`rooms/${code}/${sid}`),ad=ref(db,`meta/${code}/admin`);
-  adRef=ad;metaOk=false;chatJoin(code);onDisconnect(me).remove();onDisconnect(ad).remove().catch(()=>{});
-  rm={presence:async o=>{const j=JSON.stringify(o)+pname;if(j===lastJ)return;lastJ=j;try{await set(me,{...o,n:(pname||u.displayName||'Hráč').slice(0,14)})}catch(e){lastJ='';$$('net').textContent='Zápis přítomnosti odmítnut – nahraj pravidla databáze'}}};
+  adRef=ad;metaOk=false;roomsOk=false;cleaned=false;joinT=Date.now()+srvOff;peersNow=[];chatJoin(code);onDisconnect(me).remove();onDisconnect(ad).remove().catch(()=>{});
+  rm={presence:async o=>{o={...o,ts:Math.floor((Date.now()+srvOff)/5000),jt:joinT};const j=JSON.stringify(o)+pname;if(j===lastJ)return;lastJ=j;try{await set(me,{...o,n:(pname||u.displayName||'Hráč').slice(0,14)})}catch(e){lastJ='';$$('net').textContent='Zápis přítomnosti odmítnut – nahraj pravidla databáze'}}};
   stop=onValue(ref(db,`rooms/${code}`),s=>{
-    peersNow=Object.entries(s.val()||{}).map(([id,p])=>({by:id,isMe:id===sid,kind:'viewer',presence:p}));
+    const nowT=Math.floor((Date.now()+srvOff)/5000),all=Object.entries(s.val()||{}).filter(([id,p])=>p&&typeof p==='object');
+    all.forEach(([id,p])=>{if(id!==sid&&id.startsWith(u.uid)&&(p.ts!==undefined&&nowT-p.ts>5))remove(ref(db,`rooms/${code}/${id}`)).catch(()=>{})});cleaned=true;
+    peersNow=all.filter(([id,p])=>id===sid||p.ts===undefined||nowT-p.ts<=5).map(([id,p])=>({by:id,isMe:id===sid,kind:'viewer',presence:p}));roomsOk=true;
     peersNow.forEach(p=>names[p.by]=p.presence.n);
     $$('net').textContent=`Místnost „${code}“: online ${peersNow.length}`;claim();lobbyUI();
   },e=>{$$('net').textContent='Databáze odmítla přístup (zkontroluj pravidla)'});
